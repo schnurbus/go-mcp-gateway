@@ -37,7 +37,6 @@ func (h *Handler) HandleOAuthRegister(c *fiber.Ctx) error {
 			"description": "Failed to decode body",
 		})
 	}
-	log.Info("Register Debug", "metadata", metadata)
 
 	validatedMetadata, err := h.auth.RegisterValidate(ctx, metadata)
 	if err != nil {

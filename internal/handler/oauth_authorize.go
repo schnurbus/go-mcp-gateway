@@ -30,8 +30,6 @@ func (h *Handler) HandleOAuthAuthorize(c *fiber.Ctx) error {
 	}
 
 	sessionId := sess.ID()
-	log.Info("Got session", "sid", sessionId)
-
 	if err := sess.Save(); err != nil {
 		log.Error("Could not save session", "sid", sessionId)
 	}

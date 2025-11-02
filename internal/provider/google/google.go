@@ -139,8 +139,6 @@ func (p *GoogleProvider) Callback(ctx context.Context, sid, state, code string) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to exchange code: %w", err)
 	}
-	log.Info("Debug Google AccessToken", "access_token", oauth2Tok.AccessToken)
-	log.Info("Debug Google AccessToken", "refresh_token", oauth2Tok.RefreshToken)
 
 	rawIDToken, ok := oauth2Tok.Extra("id_token").(string)
 	if !ok {

@@ -12,10 +12,11 @@ import (
 )
 
 type BaseConfig struct {
-	BaseURL       string `default:"http://localhost:8080" envconfig:"BASE_URL"`
-	Port          string `default:"8080" envconfig:"PORT"`
-	RedisAddr     string `default:"localhost:6379" envconfig:"REDIS_ADDR"`
-	RedisPassword string `envconfig:"REDIS_PASSWORD"`
+	AllowedOrigins string `required:"true" envconfig:"ALLOWED_ORIGINS"`
+	BaseURL        string `default:"http://localhost:8080" envconfig:"BASE_URL"`
+	Port           string `default:"8080" envconfig:"PORT"`
+	RedisAddr      string `default:"localhost:6379" envconfig:"REDIS_ADDR"`
+	RedisPassword  string `envconfig:"REDIS_PASSWORD"`
 }
 
 type OAuthGoogleConfig struct {

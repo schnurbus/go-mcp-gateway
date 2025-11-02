@@ -1,16 +1,29 @@
 package googletokenvalidator
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// GoogleAccessTokenValidator ist die Middleware-Funktion
-func New() fiber.Handler {
+type TokenInfoResponse struct {
+	Azp           string        `json:"azp"`
+	Aud           string        `json:"aud"`
+	Sub           string        `json:"sub"`
+	Scope         string        `json:"scope"`
+	Exp           JsonTimestamp `json:"exp"`
+	ExpiresIn     string        `json:"expires_in"`
+	Email         string        `json:"email"`
+	EmailVerified JsonBool      `json:"email_verified"`
+	AccessTypeOff string        `json:"access_type"`
+}
+
+func New(googleClientId string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get(fiber.HeaderAuthorization)
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
@@ -21,7 +34,7 @@ func New() fiber.Handler {
 
 		accessToken := strings.TrimPrefix(authHeader, "Bearer ")
 
-		isValid, err := validateGoogleToken(accessToken)
+		isValid, err := validateGoogleToken(accessToken, googleClientId)
 		if err != nil {
 			fmt.Println("Google validation error:", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -39,7 +52,7 @@ func New() fiber.Handler {
 	}
 }
 
-func validateGoogleToken(token string) (bool, error) {
+func validateGoogleToken(token, googleClientId string) (bool, error) {
 	const validationURL = "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token="
 
 	resp, err := http.Get(validationURL + token)
@@ -53,8 +66,18 @@ func validateGoogleToken(token string) (bool, error) {
 		// ob die 'aud' (Audience) mit Ihrer Client ID übereinstimmt,
 		// um Man-in-the-Middle-Angriffe zu verhindern (sehr empfohlen!).
 
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		fmt.Println(string(bodyBytes))
+		tokenInfo := new(TokenInfoResponse)
+		if err := json.NewDecoder(resp.Body).Decode(tokenInfo); err != nil {
+			return false, fmt.Errorf("could not decode token info")
+		}
+
+		if tokenInfo.Aud != googleClientId {
+			return false, fmt.Errorf("token has invalid audience")
+		}
+
+		if time.Now().After(time.Time(tokenInfo.Exp)) {
+			return false, fmt.Errorf("token is expired")
+		}
 
 		return true, nil
 	}

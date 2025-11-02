@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"log"
 	"time"
 
@@ -10,12 +9,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	fiberLogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/proxy"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/maintnotifications"
+	slogfiber "github.com/samber/slog-fiber"
 	"github.com/schnurbus/go-mcp-gateway/internal/auth"
 	"github.com/schnurbus/go-mcp-gateway/internal/config"
 	"github.com/schnurbus/go-mcp-gateway/internal/handler"
@@ -51,17 +50,12 @@ func main() {
 		log.Fatalf("failed to create handler: %v", err)
 	}
 
-	// Create proxy
-	proxy.WithTlsConfig(&tls.Config{
-		InsecureSkipVerify: true,
-	})
-
 	// Fiber App
 	app := fiber.New()
 
 	// Fiber Middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:6274",
+		AllowOrigins:     cfg.AllowedOrigins,
 		AllowMethods:     "GET, POST, OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, MCP-Protocol-Version",
 		AllowCredentials: true,
@@ -72,7 +66,7 @@ func main() {
 		Expiration:        30 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
-	app.Use(fiberLogger.New())
+	app.Use(slogfiber.New(mainLogger))
 	app.Use(recover.New())
 	app.Use(requestid.New())
 
@@ -85,7 +79,7 @@ func main() {
 	app.Post(auth.GetTokenPath(), handler.HandleOauthToken)
 
 	// Validate Google access tokens for all proxied requests
-	app.Use(googletokenvalidator.New())
+	app.Use(googletokenvalidator.New(cfg.GoogleClientID))
 
 	// Proxies
 	for _, p := range proxies {

@@ -40,8 +40,6 @@ func (h *Handler) HandleOauthToken(c *fiber.Ctx) error {
 	}
 	params.Authorization = c.Get(fiber.HeaderAuthorization)
 
-	log.Info("Debug params", "params", params)
-
 	switch params.GrantType {
 	case "authorization_code":
 		googleTokens, authErr := h.generateAuthorizationCode(ctx, params)
