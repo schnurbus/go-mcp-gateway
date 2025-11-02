@@ -37,7 +37,7 @@ echo "📋 Check 3: Searching for secrets in staged code files..."
 FOUND_SECRETS=0
 
 # Get staged files excluding markdown documentation and this script
-STAGED_CODE_FILES=$(git diff --staged --name-only --diff-filter=ACM | grep -v "\.md$" | grep -v "SECURITY" | grep -v "\.example$" | grep -v "verify-security.sh")
+STAGED_CODE_FILES=$(git diff --staged --name-only --diff-filter=ACM | grep -v "\.md$" | grep -v "SECURITY" | grep -v "\.example$" | grep -v "verify-security.sh" || true)
 
 if [ -n "$STAGED_CODE_FILES" ]; then
     # Check for Google OAuth client secrets in code files only
@@ -77,7 +77,7 @@ echo ""
 # Check 5: Verify required files exist
 echo "📋 Check 5: Verifying security files exist..."
 MISSING_FILES=0
-for file in .gitignore SECURITY.md .github/dependabot.yml .github/workflows/codeql-analysis.yml; do
+for file in .gitignore SECURITY.md .github/dependabot.yml .github/workflows/security-scan.yml; do
     if [ ! -f "$file" ]; then
         echo "   ✗ Missing: $file"
         MISSING_FILES=1

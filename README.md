@@ -448,7 +448,21 @@ Contributions are welcome. Please follow the existing code style:
 
 ## License
 
-[Add your license information here]
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+### What does GPL-3.0 mean?
+
+- ✅ You can use this software for any purpose
+- ✅ You can modify the software
+- ✅ You can distribute the software
+- ✅ You can distribute your modifications
+- ⚠️ If you distribute modified versions, you must:
+  - Make the source code available
+  - License it under GPL-3.0
+  - State changes made to the code
+  - Include the original copyright notice
+
+This ensures the software remains free and open source.
 
 ## References
 
@@ -457,3 +471,10 @@ Contributions are welcome. Please follow the existing code style:
 - [RFC 7591 - Dynamic Client Registration](https://tools.ietf.org/html/rfc7591)
 - [RFC 8414 - Authorization Server Metadata](https://tools.ietf.org/html/rfc8414)
 - [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
+
+## Acknowledgments
+
+Special thanks to:
+
+- **[SecureMCP](https://github.com/securemcp)** - For inspiration and pioneering work in securing MCP implementations
+- **[Claude Code](https://claude.ai/code)** - For invaluable assistance in development, documentation, and security best practices
