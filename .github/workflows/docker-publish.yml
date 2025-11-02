@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Docker image tag'
+        description: "Docker image tag"
         required: true
-        default: 'latest'
+        default: "latest"
 
 env:
   REGISTRY: ghcr.io
@@ -18,8 +18,10 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read
       packages: write
+      attestations: write
 
     steps:
       - name: Checkout repository
