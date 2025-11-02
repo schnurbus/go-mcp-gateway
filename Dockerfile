@@ -17,10 +17,10 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags='-w -s -extldflags "-static"' \
     -o server \
-    cmd/server/main.go
+    ./cmd/server
 
 # Runtime stage
 FROM alpine:latest
