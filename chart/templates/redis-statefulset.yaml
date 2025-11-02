@@ -1,0 +1,92 @@
+{{- if and .Values.redis.enabled (not .Values.redis.external.enabled) }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "go-mcp-gateway.fullname" . }}-redis
+  labels:
+    {{- include "go-mcp-gateway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  serviceName: {{ include "go-mcp-gateway.fullname" . }}-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "go-mcp-gateway.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: redis
+  template:
+    metadata:
+      labels:
+        {{- include "go-mcp-gateway.labels" . | nindent 8 }}
+        app.kubernetes.io/component: redis
+    spec:
+      securityContext:
+        {{- toYaml .Values.redis.securityContext | nindent 8 }}
+      containers:
+      - name: redis
+        image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+        imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+        command:
+        - redis-server
+        {{- if .Values.redis.auth.enabled }}
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        {{- end }}
+        - --appendonly
+        - "yes"
+        ports:
+        - name: redis
+          containerPort: 6379
+          protocol: TCP
+        {{- if .Values.redis.auth.enabled }}
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "go-mcp-gateway.fullname" . }}-redis
+              key: redis-password
+        {{- end }}
+        livenessProbe:
+          tcpSocket:
+            port: redis
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.redis.resources | nindent 12 }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  {{- if .Values.redis.master.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        {{- include "go-mcp-gateway.labels" . | nindent 8 }}
+        app.kubernetes.io/component: redis
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      {{- if .Values.redis.master.persistence.storageClass }}
+      storageClassName: {{ .Values.redis.master.persistence.storageClass }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.redis.master.persistence.size }}
+  {{- else }}
+      volumes:
+      - name: data
+        emptyDir: {}
+  {{- end }}
+{{- end }}

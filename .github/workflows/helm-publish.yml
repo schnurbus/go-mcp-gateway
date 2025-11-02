@@ -1,0 +1,87 @@
+name: Publish Helm Chart
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Chart version to publish"
+        required: true
+        default: "0.1.0"
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  publish-chart:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "3.14.0"
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            # Remove 'v' prefix if present
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Publishing chart version: ${VERSION}"
+
+      - name: Update Chart.yaml with release version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/^version:.*/version: ${VERSION}/" chart/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" chart/Chart.yaml
+          echo "Updated Chart.yaml:"
+          cat chart/Chart.yaml
+
+      - name: Lint Helm chart
+        run: |
+          helm lint chart/
+
+      - name: Package Helm chart
+        run: |
+          helm package chart/ --destination .
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+
+      - name: Push Helm chart to OCI registry
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          CHART_PACKAGE="go-mcp-gateway-${VERSION}.tgz"
+
+          if [ ! -f "${CHART_PACKAGE}" ]; then
+            echo "Error: Chart package ${CHART_PACKAGE} not found"
+            ls -la *.tgz
+            exit 1
+          fi
+
+          helm push "${CHART_PACKAGE}" oci://${{ env.REGISTRY }}/${{ github.repository_owner }}
+
+      - name: Verify chart publication
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Chart published successfully!"
+          echo ""
+          echo "To install this chart, run:"
+          echo "  helm install my-gateway oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/go-mcp-gateway --version ${VERSION}"
+          echo ""
+          echo "To pull the chart:"
+          echo "  helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/go-mcp-gateway --version ${VERSION}"
