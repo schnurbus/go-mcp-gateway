@@ -11,6 +11,7 @@
 server
 *.test
 *.out
+!cmd/server
 
 # Go workspace file
 go.work
