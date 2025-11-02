@@ -1,0 +1,45 @@
+services:
+  redis:
+    image: redis:9-alpine
+    container_name: go-mcp-gateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - mcp-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-mcp-gateway
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+      - PORT=${PORT:-8080}
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - OAUTH_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_CLIENT_ID}
+      - OAUTH_GOOGLE_CLIENT_SECRET=${OAUTH_GOOGLE_CLIENT_SECRET}
+      - OAUTH_GOOGLE_REDIRECT_URI=${OAUTH_GOOGLE_REDIRECT_URI}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+
+networks:
+  mcp-network:
+    driver: bridge

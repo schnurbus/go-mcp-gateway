@@ -1,0 +1,56 @@
+# CODEOWNERS
+#
+# This file defines who is responsible for reviewing changes to specific parts of the codebase.
+# When a pull request is opened, GitHub automatically requests reviews from the code owners.
+#
+# Format: path/to/file @username @team-name
+# More specific patterns take precedence over general ones.
+#
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repository
+# These owners will be the default for all files unless a later match takes precedence
+* @schnurbus
+
+# Security-sensitive files require extra scrutiny
+# Any changes to security configuration must be carefully reviewed
+/.github/workflows/security-scan.yml @schnurbus
+/.github/workflows/codeql-analysis.yml @schnurbus
+/SECURITY.md @schnurbus
+/.github/SECURITY_CHECKLIST.md @schnurbus
+/.github/GOING_PUBLIC.md @schnurbus
+/scripts/verify-security.sh @schnurbus
+
+# Authentication and authorization code - critical security components
+/internal/auth/ @schnurbus
+/internal/middleware/googletokenvalidator/ @schnurbus
+/internal/middleware/access_token_validator.go @schnurbus
+/internal/middleware/bearer_token.go @schnurbus
+/internal/provider/google/ @schnurbus
+
+# OAuth handlers - security-critical HTTP endpoints
+/internal/handler/oauth_*.go @schnurbus
+
+# CI/CD and deployment configuration
+/.github/workflows/ @schnurbus
+/.github/dependabot.yml @schnurbus
+/Dockerfile @schnurbus
+/docker-compose*.yml @schnurbus
+
+# Configuration files
+/config.yaml @schnurbus
+/.env.example @schnurbus
+/.gitignore @schnurbus
+/.dockerignore @schnurbus
+
+# Infrastructure and storage
+/internal/store/ @schnurbus
+
+# Documentation
+/README.md @schnurbus
+/CLAUDE.md @schnurbus
+/*.md @schnurbus
+
+# Go module dependencies
+/go.mod @schnurbus
+/go.sum @schnurbus
