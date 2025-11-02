@@ -56,6 +56,7 @@ The gateway acts as an **OAuth facilitator** - it does not issue its own tokens 
 Create a `.env` file in the project root:
 
 ```env
+ALLOWED_ORIGINS=*
 BASE_URL=http://localhost:8080
 PORT=8080
 REDIS_ADDR=localhost:6379
@@ -98,9 +99,35 @@ go build -o bin/server cmd/server/main.go
 
 The server will start on `http://localhost:8080` (or your configured port).
 
-## Docker Deployment
+## Deployment Options
 
-### Using Pre-built Images from GHCR
+### Kubernetes with Helm (Recommended for Production)
+
+Deploy to Kubernetes using the included Helm chart:
+
+```bash
+# Install from GitHub Container Registry (recommended)
+helm install my-gateway oci://ghcr.io/schnurbus/go-mcp-gateway \
+  --version 0.1.0 \
+  --set config.oauth.google.clientId=YOUR_CLIENT_ID \
+  --set config.oauth.google.clientSecret=YOUR_CLIENT_SECRET
+
+# Or install from local chart
+helm install my-gateway ./chart \
+  --set config.oauth.google.clientId=YOUR_CLIENT_ID \
+  --set config.oauth.google.clientSecret=YOUR_CLIENT_SECRET
+
+# Production install with custom values
+helm install my-gateway oci://ghcr.io/schnurbus/go-mcp-gateway \
+  --version 0.1.0 \
+  -f values-prod.yaml
+```
+
+See the [Helm Chart README](chart/README.md) for detailed configuration options.
+
+### Docker Deployment
+
+#### Using Pre-built Images from GHCR
 
 Pull the latest image from GitHub Container Registry:
 

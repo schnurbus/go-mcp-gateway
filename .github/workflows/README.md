@@ -4,6 +4,10 @@
 
 The `docker-publish.yml` workflow automatically builds and publishes Docker images to GitHub Container Registry (GHCR) when releases are created.
 
+## Helm Chart Publishing
+
+The `helm-publish.yml` workflow automatically packages and publishes the Helm chart to GitHub Container Registry (GHCR) as an OCI artifact when releases are created.
+
 ### Automatic Triggers
 
 **On Release Published:**
@@ -60,7 +64,7 @@ services:
 
 ### Creating a Release
 
-To trigger the workflow, create a new release:
+To trigger both Docker and Helm workflows, create a new release:
 
 1. **Via GitHub UI:**
    - Go to Releases → "Create a new release"
@@ -71,6 +75,10 @@ To trigger the workflow, create a new release:
 2. **Via GitHub CLI:**
    ```bash
    gh release create v1.0.0 --title "v1.0.0" --notes "Release notes"
+
+   # This will trigger both workflows:
+   # - docker-publish.yml → builds and pushes Docker image
+   # - helm-publish.yml → packages and pushes Helm chart
    ```
 
 3. **Via Git:**

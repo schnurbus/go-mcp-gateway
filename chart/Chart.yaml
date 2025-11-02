@@ -1,0 +1,19 @@
+apiVersion: v2
+name: go-mcp-gateway
+description: OAuth 2.0 authorization facilitator and reverse proxy gateway for MCP servers
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - oauth2
+  - mcp
+  - gateway
+  - reverse-proxy
+  - authentication
+home: https://github.com/schnurbus/go-mcp-gateway
+sources:
+  - https://github.com/schnurbus/go-mcp-gateway
+maintainers:
+  - name: schnurbus
+    url: https://github.com/schnurbus
+icon: https://raw.githubusercontent.com/schnurbus/go-mcp-gateway/main/.github/icon.png

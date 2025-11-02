@@ -88,3 +88,8 @@ debug
 
 # Claude Code local files
 .claude/
+
+# Helm
+*.tgz
+chart/charts/
+chart/Chart.lock
