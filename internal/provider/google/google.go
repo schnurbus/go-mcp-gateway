@@ -18,6 +18,7 @@ type GoogleConfig struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURI  string
+	GoogleScopes       []string
 }
 
 type GoogleProvider struct {
@@ -63,11 +64,16 @@ func NewGoogleProvider(ctx context.Context, config *GoogleConfig, rdb *redis.Cli
 		return nil, fmt.Errorf("failed to create oidc provider: %w", err)
 	}
 
+	scopes := config.GoogleScopes
+	if len(scopes) == 0 {
+		scopes = []string{"openid", "profile", "email"}
+	}
+
 	oidcConfig := &oauth2.Config{
 		ClientID:     config.GoogleClientID,
 		ClientSecret: config.GoogleClientSecret,
 		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{"openid", "profile", "email"},
+		Scopes:       scopes,
 		RedirectURL:  config.GoogleRedirectURI,
 	}
 

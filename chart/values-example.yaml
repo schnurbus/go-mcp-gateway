@@ -24,6 +24,10 @@ config:
       clientId: "YOUR_GOOGLE_CLIENT_ID"
       clientSecret: "YOUR_GOOGLE_CLIENT_SECRET"
       redirectUri: "https://mcp-gateway.example.com/oauth/callback"
+      # Scopes for Google OAuth
+      # For Google Drive access, add: https://www.googleapis.com/auth/drive.readonly
+      # For Google Calendar access, add: https://www.googleapis.com/auth/calendar.readonly
+      scopes: "openid,profile,email"
 
   # MCP server proxy routes
   proxies:

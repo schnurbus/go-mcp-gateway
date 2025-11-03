@@ -62,6 +62,7 @@ REDIS_PASSWORD=
 OAUTH_GOOGLE_CLIENT_ID=your-google-client-id
 OAUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
 OAUTH_GOOGLE_REDIRECT_URI=http://localhost:8080/oauth/callback
+OAUTH_GOOGLE_SCOPES=openid,profile,email
 ```
 
 ### 3. Configure Proxy Routes

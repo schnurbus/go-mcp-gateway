@@ -125,6 +125,7 @@ The following table lists the configurable parameters and their default values.
 | `config.oauth.google.clientId` | Google OAuth client ID | `""` |
 | `config.oauth.google.clientSecret` | Google OAuth client secret | `""` |
 | `config.oauth.google.redirectUri` | OAuth redirect URI | `http://localhost:8080/oauth/callback` |
+| `config.oauth.google.scopes` | OAuth scopes (comma-separated) | `"openid,profile,email"` |
 | `config.proxies` | Array of proxy configurations | See values.yaml |
 
 ### Service Configuration
