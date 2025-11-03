@@ -23,6 +23,7 @@ type OAuthGoogleConfig struct {
 	GoogleClientID     string `required:"true" envconfig:"OAUTH_GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string `required:"true" envconfig:"OAUTH_GOOGLE_CLIENT_SECRET"`
 	GoogleRedirectURI  string `required:"true" envconfig:"OAUTH_GOOGLE_REDIRECT_URI"`
+	GoogleScopes       string `default:"openid,profile,email" envconfig:"OAUTH_GOOGLE_SCOPES"`
 }
 
 type ProxyConfig struct {

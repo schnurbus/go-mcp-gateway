@@ -135,6 +135,10 @@ config:
       clientId: ""
       clientSecret: ""
       redirectUri: "http://localhost:8080/oauth/callback"
+      # Scopes for Google OAuth (comma-separated)
+      # Default: openid,profile,email
+      # Add additional scopes as needed (e.g., https://www.googleapis.com/auth/drive.readonly)
+      scopes: "openid,profile,email"
 
   # Proxy configuration for MCP servers
   proxies:

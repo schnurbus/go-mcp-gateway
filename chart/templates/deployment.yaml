@@ -68,6 +68,8 @@ spec:
               key: oauth-google-client-secret
         - name: OAUTH_GOOGLE_REDIRECT_URI
           value: {{ .Values.config.oauth.google.redirectUri | quote }}
+        - name: OAUTH_GOOGLE_SCOPES
+          value: {{ .Values.config.oauth.google.scopes | quote }}
         livenessProbe:
           {{- toYaml .Values.livenessProbe | nindent 12 }}
         readinessProbe:

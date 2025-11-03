@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2/middleware/session"
 	fiberRedis "github.com/gofiber/storage/redis/v3"
@@ -25,10 +26,21 @@ func NewHandler(
 	config *config.Config,
 	auth *auth.Auth,
 ) (*Handler, error) {
+	// Parse scopes from comma-separated string
+	var scopes []string
+	if config.OAuthGoogleConfig.GoogleScopes != "" {
+		scopes = strings.Split(config.OAuthGoogleConfig.GoogleScopes, ",")
+		// Trim whitespace from each scope
+		for i := range scopes {
+			scopes[i] = strings.TrimSpace(scopes[i])
+		}
+	}
+
 	oauthGoogle, err := google.NewGoogleProvider(ctx, &google.GoogleConfig{
 		GoogleClientID:     config.OAuthGoogleConfig.GoogleClientID,
 		GoogleClientSecret: config.OAuthGoogleConfig.GoogleClientSecret,
 		GoogleRedirectURI:  config.OAuthGoogleConfig.GoogleRedirectURI,
+		GoogleScopes:       scopes,
 	}, rdb)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create oauth google provider: %w", err)
