@@ -2,8 +2,6 @@
 
 An OAuth 2.0 authorization facilitator and reverse proxy gateway for MCP (Model Context Protocol) servers. The gateway implements RFC 6749 OAuth 2.0 authorization code flow with PKCE, integrates with Google OIDC for user authentication, and forwards Google access tokens to clients for accessing protected MCP resources.
 
-> **🔒 Security Note**: Before making this repository public or deploying to production, please review [SECURITY.md](SECURITY.md) and complete the [Security Checklist](.github/SECURITY_CHECKLIST.md).
-
 ## Features
 
 - **OAuth 2.0 Authorization Server**: Full implementation of RFC 6749 with PKCE (RFC 7636)
