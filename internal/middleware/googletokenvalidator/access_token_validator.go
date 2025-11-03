@@ -2,13 +2,17 @@ package googletokenvalidator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/schnurbus/go-mcp-gateway/internal/logger"
+	"github.com/schnurbus/go-mcp-gateway/pkg/jsonrpc"
 )
 
 type TokenInfoResponse struct {
@@ -23,31 +27,77 @@ type TokenInfoResponse struct {
 	AccessTypeOff string        `json:"access_type"`
 }
 
+var (
+	ErrDecode       = errors.New("cannot decode token info")
+	ErrInvalidAud   = errors.New("invalid audience")
+	ErrTokenExpired = errors.New("token is expired")
+)
+
 func New(googleClientId string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		log := logger.FromContext(c.Context()).With(
+			slog.String("middleware", "googletokenvalidator"),
+		)
+
+		var req jsonrpc.JSONRPCRequest
+		if err := c.BodyParser(&req); err != nil {
+			log.Error("failed to parse request body", "error", err)
+		}
+
 		authHeader := c.Get(fiber.HeaderAuthorization)
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Authorization header missing or invalid format (Expected: Bearer <token>)",
-			})
+			log.Error("missing authorization header", "request-id", req.ID, "method", req.Method)
+
+			return c.Status(fiber.StatusOK).JSON(
+				jsonrpc.NewErrorResponse(
+					req.ID,
+					"Authentication token missing",
+					-32001,
+					jsonrpc.AuthErrorData{
+						Type:   "auth_error",
+						Reason: "missing_token",
+					}))
 		}
 
 		accessToken := strings.TrimPrefix(authHeader, "Bearer ")
-
 		isValid, err := validateGoogleToken(accessToken, googleClientId)
-		if err != nil {
-			fmt.Println("Google validation error:", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to validate token with Google",
-			})
+		if err != nil || !isValid {
+			log.Error("invalid authorization token", "error", err)
+			if errors.Is(err, ErrInvalidAud) || errors.Is(err, ErrDecode) {
+				return c.Status(fiber.StatusOK).JSON(
+					jsonrpc.NewErrorResponse(
+						req.ID,
+						err.Error(),
+						-32001,
+						jsonrpc.AuthErrorData{
+							Type:           "auth_error",
+							Reason:         "invalid_token",
+							RequiresReauth: true,
+						}))
+			}
+			if errors.Is(err, ErrTokenExpired) {
+				return c.Status(fiber.StatusOK).JSON(
+					jsonrpc.NewErrorResponse(
+						req.ID,
+						err.Error(),
+						-32001,
+						jsonrpc.AuthErrorData{
+							Type:           "auth_error",
+							Reason:         "token_expired",
+							RequiresReauth: true,
+						}))
+			}
+			return c.Status(fiber.StatusOK).JSON(
+				jsonrpc.NewErrorResponse(
+					req.ID,
+					err.Error(),
+					-32001,
+					jsonrpc.AuthErrorData{
+						Type:           "auth_error",
+						Reason:         "invalid_token",
+						RequiresReauth: true,
+					}))
 		}
-
-		if !isValid {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid or expired Google access token",
-			})
-		}
-
 		return c.Next()
 	}
 }
@@ -62,21 +112,17 @@ func validateGoogleToken(token, googleClientId string) (bool, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
-		// Hier könnten Sie zusätzlich die JSON-Antwort von Google lesen und prüfen,
-		// ob die 'aud' (Audience) mit Ihrer Client ID übereinstimmt,
-		// um Man-in-the-Middle-Angriffe zu verhindern (sehr empfohlen!).
-
 		tokenInfo := new(TokenInfoResponse)
 		if err := json.NewDecoder(resp.Body).Decode(tokenInfo); err != nil {
-			return false, fmt.Errorf("could not decode token info")
+			return false, ErrDecode
 		}
 
 		if tokenInfo.Aud != googleClientId {
-			return false, fmt.Errorf("token has invalid audience")
+			return false, ErrInvalidAud
 		}
 
 		if time.Now().After(time.Time(tokenInfo.Exp)) {
-			return false, fmt.Errorf("token is expired")
+			return false, ErrTokenExpired
 		}
 
 		return true, nil
