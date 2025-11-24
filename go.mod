@@ -3,7 +3,7 @@ module github.com/schnurbus/go-mcp-gateway
 go 1.24.0
 
 require (
-	github.com/coreos/go-oidc/v3 v3.16.0
+	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/storage/redis/v3 v3.4.1
 	github.com/google/uuid v1.6.0
