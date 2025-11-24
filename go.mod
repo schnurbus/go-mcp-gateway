@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/redis/go-redis/v9 v9.16.0
+	github.com/redis/go-redis/v9 v9.17.0
 	github.com/samber/slog-fiber v1.19.0
 	golang.org/x/oauth2 v0.32.0
 	gopkg.in/yaml.v2 v2.4.0
