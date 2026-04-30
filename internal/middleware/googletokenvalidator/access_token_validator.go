@@ -48,7 +48,13 @@ func New(googleClientId string) fiber.Handler {
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			log.Error("missing authorization header", "request-id", req.ID, "method", req.Method)
 
-			return c.Status(fiber.StatusOK).JSON(
+			// MCP spec + RFC 6750 §3 + RFC 9728: a missing or
+			// non-Bearer Authorization header must produce a 401 with
+			// a WWW-Authenticate challenge so the client can discover
+			// how to authenticate. Returning 200 + JSONRPC error
+			// hides the auth requirement from spec-compliant clients.
+			c.Set(fiber.HeaderWWWAuthenticate, `Bearer realm="mcp-gateway"`)
+			return c.Status(fiber.StatusUnauthorized).JSON(
 				jsonrpc.NewErrorResponse(
 					req.ID,
 					"Authentication token missing",

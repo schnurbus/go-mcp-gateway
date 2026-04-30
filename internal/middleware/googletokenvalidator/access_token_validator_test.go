@@ -29,8 +29,12 @@ func TestNew_MissingAuthorizationHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.StatusCode != fiber.StatusOK {
-		t.Errorf("expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
+	if resp.StatusCode != fiber.StatusUnauthorized {
+		t.Errorf("expected status %d, got %d", fiber.StatusUnauthorized, resp.StatusCode)
+	}
+
+	if got := resp.Header.Get("WWW-Authenticate"); got == "" || !strings.HasPrefix(got, "Bearer") {
+		t.Errorf("expected WWW-Authenticate Bearer challenge, got %q", got)
 	}
 
 	body, _ := io.ReadAll(resp.Body)
@@ -82,8 +86,12 @@ func TestNew_InvalidAuthorizationHeaderFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp.StatusCode != fiber.StatusOK {
-		t.Errorf("expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
+	if resp.StatusCode != fiber.StatusUnauthorized {
+		t.Errorf("expected status %d, got %d", fiber.StatusUnauthorized, resp.StatusCode)
+	}
+
+	if got := resp.Header.Get("WWW-Authenticate"); got == "" || !strings.HasPrefix(got, "Bearer") {
+		t.Errorf("expected WWW-Authenticate Bearer challenge, got %q", got)
 	}
 
 	body, _ := io.ReadAll(resp.Body)
@@ -117,9 +125,9 @@ func TestNew_InvalidRequestBody(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Should still process and return missing auth error
-	if resp.StatusCode != fiber.StatusOK {
-		t.Errorf("expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
+	// Should still process and return missing auth error (401 with WWW-Authenticate).
+	if resp.StatusCode != fiber.StatusUnauthorized {
+		t.Errorf("expected status %d, got %d", fiber.StatusUnauthorized, resp.StatusCode)
 	}
 
 	body, _ := io.ReadAll(resp.Body)
@@ -285,8 +293,8 @@ func TestNew_MiddlewareChain(t *testing.T) {
 		t.Error("next handler should not be called when auth fails")
 	}
 
-	if resp.StatusCode != fiber.StatusOK {
-		t.Errorf("expected status %d, got %d", fiber.StatusOK, resp.StatusCode)
+	if resp.StatusCode != fiber.StatusUnauthorized {
+		t.Errorf("expected status %d, got %d", fiber.StatusUnauthorized, resp.StatusCode)
 	}
 }
 
